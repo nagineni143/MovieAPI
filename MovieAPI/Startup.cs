@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MovieAPI.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,11 +29,13 @@ namespace MovieAPI
         {
 
             services.AddControllers();
+            services.AddMvc().AddXmlSerializerFormatters();
+            services.AddDbContext<MovieDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,MovieDbContext dbContext)
         {
             if (env.IsDevelopment())
             {
@@ -43,6 +47,7 @@ namespace MovieAPI
             app.UseRouting();
 
             app.UseAuthorization();
+            dbContext.Database.EnsureCreated();
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Models.MovieAPI;
+using MovieAPI.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Models.MovieAPI;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MovieAPI.Controllers
 {
@@ -12,36 +15,53 @@ namespace MovieAPI.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private static List<Movie> movies = new List<Movie>()
-        {
-            new Movie() { Id = 1, Name = "The Godfather", Language = "English"},
-            new Movie() { Id = 2, Name = "RRR", Language = "Telugu"},
-            new Movie() { Id = 3, Name = "Fanna", Language = "Hindi"}
-        };
+        private readonly MovieDbContext _context;
 
+        public MoviesController(MovieDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/<MoviesController>
         [HttpGet]
-        public IEnumerable<Movie> Get()
+        public IActionResult Get()
         {
-            return movies;
-        }
-        [HttpPost]
-        public void Post([FromBody]Movie movie)
-        {
-            movies.Add(movie);
-        }
-        [HttpPut("{id}")]
-        public void Put(int id,[FromBody] Movie movie)
-        {
-            var updateMovie = movies.FirstOrDefault(movieId => movieId.Id == id);
-            updateMovie.Id = movie.Id;
-            updateMovie.Name = movie.Name;
-            updateMovie.Language = movie.Language;
+            return Ok(_context.Movies);
+            
         }
 
+        // GET api/<MoviesController>/5
+        [HttpGet("{id}")]
+        public Movie Get(int id)
+        {
+            return _context.Movies.FirstOrDefault(movie =>movie.Id == id);
+        }
+
+        // POST api/<MoviesController>
+        [HttpPost]
+        public void Post([FromBody] Movie value)
+        {
+            _context.Movies.Add(value);
+            _context.SaveChanges();
+        }
+
+        // PUT api/<MoviesController>/5
+        [HttpPut("{id}")]
+        public void Put(int id, [FromBody] Movie value)
+        {
+            var movie = _context.Movies.FirstOrDefault(v => v.Id == id);
+            movie.Id = value.Id;
+            movie.Name = value.Name;
+            movie.Language = value.Language;
+            _context.SaveChanges();
+        }
+
+        // DELETE api/<MoviesController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            movies.RemoveAt(id);
+            _context.Movies.Remove(_context.Movies.FirstOrDefault(v => v.Id == id));
+            _context.SaveChanges();
         }
     }
 }
